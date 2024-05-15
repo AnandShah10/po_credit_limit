@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="partner_form_inherit" model="ir.ui.view">
+        <field name="name">restrict.partner.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="Partner_credit_limit"/>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="purchase_order_form_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='print_quotation']" position="after">
+                <button name="button_confirm" type="object"
+                        invisible="state not in  ['first_approval','second_approval']"
+                        string="Second Confirm"
+                        context="{'validate_analytic': True}" class="oe_highlight"
+                        id="bid_confirm" data-hotkey="q"/>
+                <button name="button_cancel" invisible="state not in ('first_approval', 'second_approval')"
+                        string="Cancel" type="object" data-hotkey="x"/>
+
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_config_settings_view_form_purchase_credit_limit" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.purchase.credit.limit</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='purchase']" position="inside">
+                <block title="Purchase_credit_limit" name="purchase_setting_container_credit_limit">
+                    <setting id="po_order_approval1" company_dependent="1"
+                             help="Request managers to approve orders above a minimum amount">
+                        <field name="credit_limit"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_form_view_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <field name="state" position="replace"
+                       t-if="partner_id.Partner_credit_limit >= compute_settings_credit_limit">
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,first_approval,second_approval,purchase"/>
+                </field>
+            </data>
+        </field>
+    </record>
+
+</odoo>
